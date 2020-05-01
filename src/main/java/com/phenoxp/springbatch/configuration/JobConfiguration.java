@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 
-@Configuration
+//@Configuration
 public class JobConfiguration {
     @Autowired
     StepBuilderFactory stepBuilderFactory;

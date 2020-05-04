@@ -16,7 +16,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
+//@Configuration
 public class JobForXMLConfiguration {
 
     @Autowired

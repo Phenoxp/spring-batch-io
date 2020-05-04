@@ -1,7 +1,7 @@
 create table customer (
-  id mediumint(8) unsigned not null auto_increment,
+  id integer not null AUTO_INCREMENT,
   firstName varchar(255),
   lastName varchar(255),
   birthDate varchar(255),
   primary key(id)
-) AUTO_INCREMENT=1;
+) ENGINE=InnoDB;

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
-@Configuration
+//@Configuration
 public class JobForCSVConfiguration {
     @Autowired
     private JobBuilderFactory jobBuilderFactory;

@@ -4,7 +4,6 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 public class CustomerRowMapper implements RowMapper<Customer> {
     @Override

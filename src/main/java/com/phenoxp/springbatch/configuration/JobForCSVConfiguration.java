@@ -19,7 +19,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import javax.sql.DataSource;
 
-@Configuration
+//@Configuration
 public class JobForCSVConfiguration {
     @Autowired
     private JobBuilderFactory jobBuilderFactory;

@@ -1,10 +1,12 @@
 package com.phenoxp.springbatch.configuration;
 
 import com.phenoxp.springbatch.domain.Customer;
+import com.phenoxp.springbatch.domain.CustomerLineAggregator;
 import com.phenoxp.springbatch.domain.CustomerRowMapper;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
+import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.xml.StaxEventItemWriter;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -51,6 +53,18 @@ public class ConfigurationUtils {
         String customerOutputPath = File.createTempFile("customerOutput", ".xml").getAbsolutePath();
         System.out.println(">>>> Output Path: " + customerOutputPath);
 
+        itemWriter.setResource(new FileSystemResource(customerOutputPath));
+        itemWriter.afterPropertiesSet();
+
+        return itemWriter;
+    }
+
+    public  static FlatFileItemWriter<Customer> getCustomerFlatFileItemWriter() throws Exception {
+        FlatFileItemWriter<Customer> itemWriter = new FlatFileItemWriter<>();
+
+        itemWriter.setLineAggregator(new CustomerLineAggregator());
+        String customerOutputPath = File.createTempFile("customerOutput", ".out").getAbsolutePath();
+        System.out.println(">>>> Output Path: "+ customerOutputPath);
         itemWriter.setResource(new FileSystemResource(customerOutputPath));
         itemWriter.afterPropertiesSet();
 

@@ -22,7 +22,10 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
+import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
+import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerStaxEventItemWriter;
+
+//@Configuration
 public class JobProcessorConfiguration {
 
     @Autowired
@@ -36,44 +39,12 @@ public class JobProcessorConfiguration {
 
     @Bean
     public JdbcPagingItemReader<Customer> pagingItemReader() {
-        JdbcPagingItemReader<Customer> reader = new JdbcPagingItemReader<>();
-
-        reader.setDataSource(dataSource);
-        reader.setFetchSize(10);
-        reader.setRowMapper(new CustomerRowMapper());
-
-        MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();
-        queryProvider.setSelectClause("id, firstName, lastName, birthDate");
-        queryProvider.setFromClause("from customer");
-
-        Map<String, Order> sortKeys = new HashMap<>(1);
-        sortKeys.put("id", Order.ASCENDING);
-
-        queryProvider.setSortKeys(sortKeys);
-        reader.setQueryProvider(queryProvider);
-
-        return reader;
+        return getCustomerJdbcPagingItemReader(dataSource);
     }
 
     @Bean
     public StaxEventItemWriter<Customer> customerItemWriter() throws Exception {
-        XStreamMarshaller marshaller = new XStreamMarshaller();
-        Map<String, Class> aliases = new HashMap<>();
-        aliases.put("customer", Customer.class);
-
-        marshaller.setAliases(aliases);
-
-        StaxEventItemWriter<Customer> itemWriter = new StaxEventItemWriter<>();
-
-        itemWriter.setRootTagName("customers");
-        itemWriter.setMarshaller(marshaller);
-        String customerOutputPath = File.createTempFile("customerOutput", ".xml").getAbsolutePath();
-        System.out.println(">>>> Output Path: " + customerOutputPath);
-
-        itemWriter.setResource(new FileSystemResource(customerOutputPath));
-        itemWriter.afterPropertiesSet();
-
-        return itemWriter;
+        return getCustomerStaxEventItemWriter();
     }
 
     @Bean

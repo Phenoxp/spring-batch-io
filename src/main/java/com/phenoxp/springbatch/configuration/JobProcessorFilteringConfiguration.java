@@ -1,34 +1,33 @@
 package com.phenoxp.springbatch.configuration;
 
 import com.phenoxp.springbatch.domain.Customer;
+import com.phenoxp.springbatch.domain.CustomerLineAggregator;
+import com.phenoxp.springbatch.processor.FilteringItemProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.xml.StaxEventItemWriter;
+import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.oxm.xstream.XStreamMarshaller;
 
 import javax.sql.DataSource;
+
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
-import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerStaxEventItemWriter;
 
-//@Configuration
-public class JobWriteXMLConfiguration {
-
-    @Autowired
-    private JobBuilderFactory jobBuilderFactory;
+@Configuration
+public class JobProcessorFilteringConfiguration {
 
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
+
+    @Autowired
+    private JobBuilderFactory jobBuilderFactory;
 
     @Autowired
     private DataSource dataSource;
@@ -39,8 +38,21 @@ public class JobWriteXMLConfiguration {
     }
 
     @Bean
-    public StaxEventItemWriter<Customer> customerItemWriter() throws Exception {
-        return getCustomerStaxEventItemWriter();
+    public FlatFileItemWriter<Customer> customerItemWriter() throws Exception{
+        FlatFileItemWriter<Customer> itemWriter = new FlatFileItemWriter<>();
+
+        itemWriter.setLineAggregator(new CustomerLineAggregator());
+        String customerOutputPath = File.createTempFile("customerOutput", ".out").getAbsolutePath();
+        System.out.println(">>>> Output Path: "+ customerOutputPath);
+        itemWriter.setResource(new FileSystemResource(customerOutputPath));
+        itemWriter.afterPropertiesSet();
+
+        return itemWriter;
+    }
+
+    @Bean
+    public FilteringItemProcessor itemProcessor(){
+        return new FilteringItemProcessor();
     }
 
     @Bean
@@ -48,14 +60,16 @@ public class JobWriteXMLConfiguration {
         return stepBuilderFactory.get("step1")
                 .<Customer, Customer>chunk(10)
                 .reader(pagingItemReader())
+                .processor(itemProcessor())
                 .writer(customerItemWriter())
                 .build();
     }
 
     @Bean
     public Job job() throws Exception {
-        return jobBuilderFactory.get("job")
+        return jobBuilderFactory.get("jobFilteringProcessor")
                 .start(step1())
                 .build();
     }
+
 }

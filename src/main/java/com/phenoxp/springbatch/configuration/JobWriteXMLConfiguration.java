@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
 
-@Configuration
+//@Configuration
 public class JobWriteXMLConfiguration {
 
     @Autowired

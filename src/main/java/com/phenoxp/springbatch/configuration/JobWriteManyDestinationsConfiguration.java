@@ -24,7 +24,7 @@ import java.util.Map;
 
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
 
-@Configuration
+//@Configuration
 public class JobWriteManyDestinationsConfiguration {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;

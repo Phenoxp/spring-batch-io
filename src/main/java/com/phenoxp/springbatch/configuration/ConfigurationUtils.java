@@ -41,6 +41,9 @@ public class ConfigurationUtils {
         return reader;
     }
 
+    //Make sure to confirm that the table new_customer has been created before
+    //Otherwise, run:
+    //create table new_customer as select * from customer limit 0;
     public static JdbcBatchItemWriter<Customer> getCustomerJdbcBatchItemWriter(DataSource dataSource) {
         JdbcBatchItemWriter<Customer> itemWriter = new JdbcBatchItemWriter<>();
 

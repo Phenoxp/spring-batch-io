@@ -21,7 +21,7 @@ import java.util.Random;
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcBatchItemWriter;
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
 
-@Configuration
+//@Configuration
 public class JobAsyncProcessorConfiguration {
 
     @Autowired

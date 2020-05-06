@@ -18,11 +18,11 @@ import java.util.Map;
 
 public class ConfigurationUtils {
 
-    public static JdbcPagingItemReader<Customer> getCustomerJdbcPagingItemReader(DataSource dataSource) {
+    public static JdbcPagingItemReader<Customer> getCustomerJdbcPagingItemReader(DataSource dataSource, int fetchSize) {
         JdbcPagingItemReader<Customer> reader = new JdbcPagingItemReader<>();
 
         reader.setDataSource(dataSource);
-        reader.setFetchSize(10);
+        reader.setFetchSize(fetchSize);
         reader.setRowMapper(new CustomerRowMapper());
 
         MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();

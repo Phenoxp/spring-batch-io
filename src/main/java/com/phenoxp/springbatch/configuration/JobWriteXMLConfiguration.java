@@ -9,14 +9,8 @@ import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.xml.StaxEventItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.oxm.xstream.XStreamMarshaller;
 
 import javax.sql.DataSource;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerStaxEventItemWriter;
@@ -35,7 +29,7 @@ public class JobWriteXMLConfiguration {
 
     @Bean
     public JdbcPagingItemReader<Customer> pagingItemReader() {
-        return getCustomerJdbcPagingItemReader(dataSource);
+        return getCustomerJdbcPagingItemReader(dataSource, 10);
     }
 
     @Bean

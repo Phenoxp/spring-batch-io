@@ -1,7 +1,6 @@
 package com.phenoxp.springbatch.configuration;
 
 import com.phenoxp.springbatch.domain.Customer;
-import com.phenoxp.springbatch.domain.CustomerLineAggregator;
 import com.phenoxp.springbatch.processor.FilteringItemProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -11,12 +10,8 @@ import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 
 import javax.sql.DataSource;
-
-import java.io.File;
 
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerFlatFileItemWriter;
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
@@ -35,7 +30,7 @@ public class JobProcessorFilteringConfiguration {
 
     @Bean
     public JdbcPagingItemReader<Customer> pagingItemReader() {
-        return getCustomerJdbcPagingItemReader(dataSource);
+        return getCustomerJdbcPagingItemReader(dataSource, 10);
     }
 
     @Bean

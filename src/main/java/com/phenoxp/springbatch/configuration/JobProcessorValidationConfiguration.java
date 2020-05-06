@@ -11,7 +11,6 @@ import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.validator.ValidatingItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
@@ -32,7 +31,7 @@ public class JobProcessorValidationConfiguration {
 
     @Bean
     public JdbcPagingItemReader<Customer> pagingItemReader() {
-        return getCustomerJdbcPagingItemReader(dataSource);
+        return getCustomerJdbcPagingItemReader(dataSource, 10);
     }
 
     @Bean

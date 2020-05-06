@@ -42,7 +42,7 @@ public class JobForDBConfiguration {
 
     @Bean
     public JdbcPagingItemReader<Customer> pagingItemReader(){
-        return getCustomerJdbcPagingItemReader(dataSource);
+        return getCustomerJdbcPagingItemReader(dataSource, 10);
     }
 
     @Bean

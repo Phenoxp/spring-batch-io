@@ -1,24 +1,24 @@
 package com.phenoxp.springbatch.configuration;
 
 import com.phenoxp.springbatch.domain.Customer;
-import com.phenoxp.springbatch.domain.CustomerLineAggregator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import javax.sql.DataSource;
-import java.io.File;
 
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
 
-//@Configuration
-public class JobWriteFlatFileConfiguration {
+@Configuration
+public class JobMultiThreadConfiguration {
 
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
@@ -31,38 +31,35 @@ public class JobWriteFlatFileConfiguration {
 
     @Bean
     public JdbcPagingItemReader<Customer> pagingItemReader() {
-        return getCustomerJdbcPagingItemReader(dataSource, 10);
+        return getCustomerJdbcPagingItemReader(dataSource, 1000);
     }
 
     @Bean
-    public FlatFileItemWriter<Customer> customerItemWriter() throws Exception {
-        FlatFileItemWriter<Customer> itemWriter = new FlatFileItemWriter<>();
-// Default line aggregator of Spring
-//        itemWriter.setLineAggregator(new PassThroughLineAggregator<>());
-        itemWriter.setLineAggregator(new CustomerLineAggregator());
-        String customerOutputPath = File.createTempFile("customerOutput", ".out").getAbsolutePath();
-        System.out.println(">>>> Ouput Path: " + customerOutputPath);
-        itemWriter.setResource(new FileSystemResource(customerOutputPath));
+    public JdbcBatchItemWriter<Customer> customerItemWriter() {
+        JdbcBatchItemWriter<Customer> itemWriter = new JdbcBatchItemWriter<>();
+
+        itemWriter.setDataSource(dataSource);
+        itemWriter.setSql("INSERT INTO NEW_CUSTOMER VALUES(:id, :firstName, :lastName, :birthDate)");
+        itemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
         itemWriter.afterPropertiesSet();
 
         return itemWriter;
     }
 
     @Bean
-    public Step step1() throws Exception {
-        return stepBuilderFactory.get("step1")
-                .<Customer, Customer>chunk(10)
+    public Step step1() {
+        return stepBuilderFactory.get("stepMulti")
+                .<Customer, Customer>chunk(1000)
                 .reader(pagingItemReader())
                 .writer(customerItemWriter())
+                .taskExecutor(new SimpleAsyncTaskExecutor())
                 .build();
     }
 
     @Bean
-    public Job job() throws Exception {
-        return jobBuilderFactory.get("jobWriteFile")
+    public Job job() {
+        return jobBuilderFactory.get("jobMultiThread4")
                 .start(step1())
                 .build();
     }
-
-
 }

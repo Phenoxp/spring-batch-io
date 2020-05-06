@@ -13,7 +13,6 @@ import org.springframework.batch.item.support.ClassifierCompositeItemWriter;
 import org.springframework.batch.item.xml.StaxEventItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
@@ -37,7 +36,7 @@ public class JobWriteManyDestinationsConfiguration {
 
     @Bean
     public JdbcPagingItemReader<Customer> pagingItemReader() {
-        return getCustomerJdbcPagingItemReader(dataSource);
+        return getCustomerJdbcPagingItemReader(dataSource, 10);
     }
 
     @Bean

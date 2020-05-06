@@ -8,15 +8,28 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.partition.PartitionHandler;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.integration.partition.BeanFactoryStepLocator;
+import org.springframework.batch.integration.partition.MessageChannelPartitionHandler;
+import org.springframework.batch.integration.partition.StepExecutionRequestHandler;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.context.annotation.Profile;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -24,8 +37,10 @@ import java.util.Map;
 
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcBatchItemWriter;
 
-//@Configuration
-public class JobPartitioningConfiguration {
+@Configuration
+public class JobRemotePartitioningConfiguration implements ApplicationContextAware {
+    private static final int GRID_SIZE = 4;
+
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
 
@@ -34,6 +49,29 @@ public class JobPartitioningConfiguration {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private JobExplorer jobExplorer;
+
+    @Autowired
+    private JobRepository jobRepository;
+
+    private ApplicationContext applicationContext;
+
+    @Bean
+    public PartitionHandler partitionHandler(MessagingTemplate messagingTemplate) throws Exception {
+        MessageChannelPartitionHandler partitionHandler = new MessageChannelPartitionHandler();
+
+        partitionHandler.setStepName("slaveStep");
+        partitionHandler.setGridSize(GRID_SIZE);
+        partitionHandler.setMessagingOperations(messagingTemplate);
+        partitionHandler.setPollInterval(5000l);
+        partitionHandler.setJobExplorer(jobExplorer);
+        partitionHandler.afterPropertiesSet();
+
+        return partitionHandler;
+    }
+
 
     @Bean
     public ColumnRangePartitioner partitioner() {
@@ -44,6 +82,28 @@ public class JobPartitioningConfiguration {
         columnPartitioner.setTable("customer");
 
         return columnPartitioner;
+    }
+
+    @Bean
+    @Profile("slave")
+    @ServiceActivator(inputChannel = "inboundRequests", outputChannel = "outboundStaging")
+    public StepExecutionRequestHandler stepExecutionRequestHandler() {
+        BeanFactoryStepLocator stepLocator = new BeanFactoryStepLocator();
+        stepLocator.setBeanFactory(applicationContext);
+
+        StepExecutionRequestHandler stepExecutionRequestHandler = new StepExecutionRequestHandler();
+        stepExecutionRequestHandler.setStepLocator(stepLocator);
+        stepExecutionRequestHandler.setJobExplorer(jobExplorer);
+
+        return stepExecutionRequestHandler;
+    }
+
+    @Bean(name = PollerMetadata.DEFAULT_POLLER)
+    public PollerMetadata defaultPoller() {
+        PollerMetadata pollerMetadata = new PollerMetadata();
+        pollerMetadata.setTrigger(new PeriodicTrigger(10));
+
+        return pollerMetadata;
     }
 
     @Bean
@@ -89,18 +149,23 @@ public class JobPartitioningConfiguration {
 
     @Bean
     public Step step1() throws Exception {
-        return stepBuilderFactory.get("step1")
+        return stepBuilderFactory.get("stepRemotePartitioning")
                 .partitioner(slaveStep().getName(), partitioner())
                 .step(slaveStep())
-                .gridSize(4) //Four partitions which goes with 04 threads
-                .taskExecutor(new SimpleAsyncTaskExecutor())
+                .partitionHandler(partitionHandler(null))
                 .build();
     }
 
     @Bean
+    @Profile("master")
     public Job job() throws Exception {
-        return jobBuilderFactory.get("jobPartioning")
+        return jobBuilderFactory.get("jobRemotePartioning")
                 .start(step1())
                 .build();
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

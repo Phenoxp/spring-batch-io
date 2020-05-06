@@ -3,6 +3,8 @@ package com.phenoxp.springbatch.configuration;
 import com.phenoxp.springbatch.domain.Customer;
 import com.phenoxp.springbatch.domain.CustomerLineAggregator;
 import com.phenoxp.springbatch.domain.CustomerRowMapper;
+import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
@@ -37,6 +39,17 @@ public class ConfigurationUtils {
         reader.setQueryProvider(queryProvider);
 
         return reader;
+    }
+
+    public static JdbcBatchItemWriter<Customer> getCustomerJdbcBatchItemWriter(DataSource dataSource) {
+        JdbcBatchItemWriter<Customer> itemWriter = new JdbcBatchItemWriter<>();
+
+        itemWriter.setDataSource(dataSource);
+        itemWriter.setSql("INSERT INTO NEW_CUSTOMER VALUES(:id, :firstName, :lastName, :birthDate)");
+        itemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
+        itemWriter.afterPropertiesSet();
+
+        return itemWriter;
     }
 
     public static StaxEventItemWriter<Customer> getCustomerStaxEventItemWriter() throws Exception {

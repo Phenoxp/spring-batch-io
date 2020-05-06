@@ -15,9 +15,10 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import javax.sql.DataSource;
 
+import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcBatchItemWriter;
 import static com.phenoxp.springbatch.configuration.ConfigurationUtils.getCustomerJdbcPagingItemReader;
 
-@Configuration
+//@Configuration
 public class JobMultiThreadConfiguration {
 
     @Autowired
@@ -36,14 +37,7 @@ public class JobMultiThreadConfiguration {
 
     @Bean
     public JdbcBatchItemWriter<Customer> customerItemWriter() {
-        JdbcBatchItemWriter<Customer> itemWriter = new JdbcBatchItemWriter<>();
-
-        itemWriter.setDataSource(dataSource);
-        itemWriter.setSql("INSERT INTO NEW_CUSTOMER VALUES(:id, :firstName, :lastName, :birthDate)");
-        itemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-        itemWriter.afterPropertiesSet();
-
-        return itemWriter;
+        return getCustomerJdbcBatchItemWriter(dataSource);
     }
 
     @Bean
